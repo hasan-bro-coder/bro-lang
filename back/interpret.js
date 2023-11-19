@@ -1,4 +1,3 @@
-
 export class Eval {
     eval_numeric_binary_expr(lhs, rhs, opt) {
         if (lhs.type == 'NUMBER' || lhs.type == 'BOOL' && rhs.type == 'NUMBER' || lhs.type == 'BOOL') {
@@ -121,10 +120,14 @@ export class Eval {
     }
     eval_if_program(ast){
         let opt = this.eval_binary_expr(ast.test)
+        console.log(opt.value == true? "yos true":"nah/uh");
         if (opt.value) {
             return this.eval_body(ast.body)
+        }else if (ast.alternate) {
+            return this.eval_body(ast.alternate);
+        } else {
+            return{value: "null" , type: "NULL"};
         }
-        console.log(opt.value == true? "yos true":"nah/uh");
         // return opt
     }
     constructor(ast, Env) {

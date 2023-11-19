@@ -18,6 +18,7 @@ export const TOKEN_TYPE = {
     NULL: "null",
     SEMI: ";",
     IF: "if",
+    ELSE: "else",
     EOF: "end",
 }
 export class Lexer {
@@ -44,7 +45,8 @@ export class Lexer {
             "null": this.TOKEN_TYPE.NULL,
             "true": this.TOKEN_TYPE.TRUE,
             "false": this.TOKEN_TYPE.FALSE,
-            "if": this.TOKEN_TYPE.IF
+            "if": this.TOKEN_TYPE.IF,
+            "else": this.TOKEN_TYPE.ELSE
         }
     }
     tokenize() {

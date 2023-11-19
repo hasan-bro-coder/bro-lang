@@ -24,6 +24,6 @@ npx bro-lang
 
 bro-langs syntax is similar to javascript and lua 
 
-```var i = "hello,"
-print i + " bro"
+```
+
 ```

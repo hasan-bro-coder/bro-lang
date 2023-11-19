@@ -135,7 +135,16 @@ export class Parse {
     const test = this.parse_expr();
     this.expect(TOKEN_TYPE.L_paren, "Expected closing parenthesis following if keyword");
     const body = this.parse_block_statement();
-    return {type: 'IF', body: body, test:test};
+    let alternate;
+        if (this.at().type == this.TOKEN_TYPE.ELSE) {
+            this.eat(); // eat "else"
+            if (this.at().type == this.TOKEN_TYPE.IF) {
+                alternate = [this.parse_if_statement()];
+            } else {
+                alternate = this.parse_block_statement();
+            }
+        }
+    return {type: 'IF', body: body, test:test,alternate};
   }
   parse_bool_expr() {
     let left = this.parse_additive_expr();

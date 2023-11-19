@@ -111,29 +111,52 @@ export class Eval {
         const value = declaration.value ? this.interpret(declaration.value, this.Env) : { type: "NULL", value: null };
         return this.Env.dec_var(declaration.identifier, value);
     }
-    eval_body(body){
-        let result = {value: "null",type:"NULL"};
+    eval_body(body) {
+        let result = { value: "null", type: "NULL" };
         for (const stmt of body) {
             result = this.interpret(stmt);
         }
         return result;
     }
-    eval_if_program(ast){
+    eval_if_program(ast) {
         let opt = this.eval_binary_expr(ast.test)
-        console.log(opt.value == true? "yos true":"nah/uh");
+        // console.log(opt.value == true ? "yos true" : "nah/uh");
         if (opt.value) {
             return this.eval_body(ast.body)
-        }else if (ast.alternate) {
+        } else if (ast.alternate) {
             return this.eval_body(ast.alternate);
         } else {
-            return{value: "null" , type: "NULL"};
+            return { value: "null", type: "NULL" };
         }
+        // return opt
+    }
+    eval_loop_program(ast) {
+        let opt = this.eval_binary_expr(ast.condition)
+        // console.log(opt.value == true ? "yos true" : "nah/uh");
+        // if (opt.value) {
+            while (opt.value){
+                // console.log(opt);
+                console.log(this.eval_body(ast.body).value)
+                opt = this.eval_binary_expr(ast.condition)
+            }
+            // {
+            //     eval_assignment(update, env);
+            //     eval_body(body, new Environment(env), false);
+        
+            //     test = evaluate(declaration.test, env);
+            // } while ((test as BooleanVal).value);
+        // } else if (ast.alternate) {
+            // return this.eval_body(ast.alternate);
+        // } else {
+            // return { value: "null", type: "NULL" };
+        // }
         // return opt
     }
     constructor(ast, Env) {
         this.Env = Env
         this.ast = ast;
         this.exit = false
+        this.res = ""
     }
     interpret(ast) {
         if (!ast) {
@@ -157,6 +180,8 @@ export class Eval {
                 return this.eval_program(ast)
             case "IF":
                 return this.eval_if_program(ast)
+            case "LOOP":
+                return this.eval_loop_program(ast)
             case "NULL":
                 return null
             case "IDENT":

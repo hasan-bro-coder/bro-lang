@@ -7,11 +7,20 @@ import { ENV } from "./back/var.js";
 import prompt from 'enquirer';
 import chalk from 'chalk'
 import  util from 'util'
+let prod = true
 function print (data){
   typeof data === 'object' || Array.isArray(data) ? console.log(util.inspect(data,true,12,true)) : console.log(data)
   // console.log(util.inspect(data,true,12,true))
   }
+console.log(process.argv);
 let short = true
+let filename = "hsn.bro"
+if (prod) {
+  if (process.argv[2]) {
+    short = false    
+    filename = process.argv[2]
+  }
+}
 // let short = false
 function spit(data,envs){
   console.log(data.toString());
@@ -33,7 +42,7 @@ if (short) {
 })();
   
 }else{
-  readFile("hsn.bro",async (err,data)=>{
+  readFile(filename,async (err,data)=>{
       spit(data.toString(),env)
   })
 }

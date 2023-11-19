@@ -66,6 +66,8 @@ export class Parse {
         return { value: this.eat().value, type: "BOOL", grp: "AST" };
       case TOKEN_TYPE.IF:
         return this.parse_if_statement();
+        case TOKEN_TYPE.WHILE:
+          return this.parse_loop_statement();
       case this.TOKEN_TYPE.FALSE: this.eat(); // eat if keyword
         return { value: this.eat().value, type: "BOOL", grp: "AST" };
       case this.TOKEN_TYPE.NUM:
@@ -128,7 +130,14 @@ export class Parse {
     this.expect(this.TOKEN_TYPE.L_brack, "Closing brace expected.");
     return body;
   }
-
+  parse_loop_statement() {
+    this.eat()
+    this.expect(TOKEN_TYPE.R_paren, "Expected opening parenthesis following if keyword");
+    const test = this.parse_expr();
+    this.expect(TOKEN_TYPE.L_paren, "Expected closing parenthesis following if keyword");
+    const body = this.parse_block_statement();
+    return {type: 'LOOP', body: body, condition:test,};
+  }
   parse_if_statement() {
     this.eat()
     this.expect(TOKEN_TYPE.R_paren, "Expected opening parenthesis following if keyword");

@@ -24,11 +24,12 @@ npx bro-lang
 
 bro-langs syntax is similar to javascript and lua 
 
-```
+```js
 your_favorite_language = "python"
 
 if (your_favorite_language == "python"){ 
     print "try me bro" 
 }else{ 
     print "you better ,stonger, faster then python but not as fast as bro-lang" 
-}```
+}
+```

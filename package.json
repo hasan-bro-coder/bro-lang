@@ -1,11 +1,14 @@
 {
   "name": "bro-lang",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "bro": "./index.js"
   },
   "author": "",
   "license": "ISC",

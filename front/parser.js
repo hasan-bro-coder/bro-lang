@@ -98,18 +98,20 @@ export class Parse {
   }
   parse_ident(){
     let val = this.eat()
-    console.log(val);
-    // this.expect(this.TOKEN_TYPE.R_paren)
-    // let args = this.parse_expr()
-    // this.expect(this.TOKEN_TYPE.L_paren)
-    this.expect(TOKEN_TYPE.R_paren, "Expected opening parenthesis following if keyword");
-    // const test = this.parse_a();
-    let hasargs = true;
-    while (hasargs) {
-      
+    // console.log(val);
+    // // this.expect(this.TOKEN_TYPE.R_paren)
+    if(this.eat.type == TOKEN_TYPE.R_paren){
+      let args = this.parse_expr()
     }
-    this.expect(TOKEN_TYPE.L_paren, "Expected closing parenthesis following if keyword");
-    return { type: "IDENT", value: val.value,test:[test], grp: "AST" }
+    // // this.expect(this.TOKEN_TYPE.L_paren)
+    // this.expect(TOKEN_TYPE.R_paren, "Expected opening parenthesis following if keyword");
+    // // const test = this.parse_a();
+    // let hasargs = true;
+    // while (hasargs) {
+
+    // }
+    // this.expect(TOKEN_TYPE.L_paren, "Expected closing parenthesis following if keyword");test:[test]
+    return { type: "IDENT", value: val.value, grp: "AST" }
   }
   parse_multiplicative_expr() {
     let left = this.parse_primary_expr();

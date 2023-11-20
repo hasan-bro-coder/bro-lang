@@ -74,18 +74,28 @@ export class Eval {
         // } 
     }
     eval_identifier(ident) {
-        if (this.Env.has_var(ident.value)) {
-            const val = this.Env.get_var(ident.value);
-            return val;
+        if (ident.group == "var") {
+            if (this.Env.has_var(ident.value)) {
+                const val = this.Env.get_var(ident.value);
+                return val;
+            } else {
+                console.error("this is not defined:", ident);
+                this.exit = true; return 0;
+            }
         } else {
-            console.error("This AST node has not yet been setup for interpretation", ident);
-            this.exit = true; return 0;
-
+            if (this.Env.has_var(ident.value)) {
+                this.Env.run_func(ident.value)
+                // const val = this.Env.get_var(ident.value);
+                // return val;
+            } else {
+                console.error("this is not defined:", ident);
+                this.exit = true; return 0;
+            }
         }
     }
     eval_binary_expr(binop) {
         if (binop.type == "BOOL") {
-            return binop.value == 1 ? {type: "BOOL", value: true} : {type: "BOOL", value: false};
+            return binop.value == 1 ? { type: "BOOL", value: true } : { type: "BOOL", value: false };
         }
         const lhs = this.interpret(binop.left);
         const rhs = this.interpret(binop.right);
@@ -128,10 +138,10 @@ export class Eval {
         return result;
     }
     eval_if_program(ast) {
-        let opt = {type: "BOOL", value: false}
-        if (ast.test.type == "BOOL"){
+        let opt = { type: "BOOL", value: false }
+        if (ast.test.type == "BOOL") {
             opt.value = ast.test.value == 1 ? true : false;
-        }else {opt = this.eval_binary_expr(ast.test)}
+        } else { opt = this.eval_binary_expr(ast.test) }
         // console.log(opt)
         // console.log(opt.value == true ? "yos true" : "nah/uh");
         if (opt.value) {
@@ -145,27 +155,27 @@ export class Eval {
     }
     eval_loop_program(ast) {
         // let opt = this.eval_binary_expr(ast.condition)
-        let opt = {type: "BOOL", value: false}
-        if (ast.condition.type == "BOOL"){
+        let opt = { type: "BOOL", value: false }
+        if (ast.condition.type == "BOOL") {
             opt.value = ast.condition.value == 1 ? true : false;
-        }else {opt = this.eval_binary_expr(ast.condition)}
+        } else { opt = this.eval_binary_expr(ast.condition) }
         // console.log(opt.value == true ? "yos true" : "nah/uh");
         // if (opt.value) {
-            while (opt.value){
-                // console.log(opt);
-                console.log(this.eval_body(ast.body).value)
-                opt = this.eval_binary_expr(ast.condition)
-            }
-            // {
-            //     eval_assignment(update, env);
-            //     eval_body(body, new Environment(env), false);
-        
-            //     test = evaluate(declaration.test, env);
-            // } while ((test as BooleanVal).value);
+        while (opt.value) {
+            // console.log(opt);
+            console.log(this.eval_body(ast.body).value)
+            opt = this.eval_binary_expr(ast.condition)
+        }
+        // {
+        //     eval_assignment(update, env);
+        //     eval_body(body, new Environment(env), false);
+
+        //     test = evaluate(declaration.test, env);
+        // } while ((test as BooleanVal).value);
         // } else if (ast.alternate) {
-            // return this.eval_body(ast.alternate);
+        // return this.eval_body(ast.alternate);
         // } else {
-            // return { value: "null", type: "NULL" };
+        // return { value: "null", type: "NULL" };
         // }
         // return opt
     }

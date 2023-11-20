@@ -28,6 +28,10 @@ export class ENV{
     add_func(ast){
         this.funcs.set(ast.name, ast)
     }
+    has_func(name){
+        let val = this.funcs.get(name)
+        return val ? true : false;
+    }
     run_func(name){
         return this.funcs.get(name)
     }

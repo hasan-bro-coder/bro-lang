@@ -12,7 +12,6 @@ function print (data){
   typeof data === 'object' || Array.isArray(data) ? console.log(util.inspect(data,true,12,true)) : console.log(data)
   // console.log(util.inspect(data,true,12,true))
   }
-console.log(process.argv);
 let short = true
 let filename = "hsn.bro"
 if (prod) {

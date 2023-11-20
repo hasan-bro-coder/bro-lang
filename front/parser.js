@@ -55,7 +55,7 @@ export class Parse {
     const tk = this.at().type;
     switch (tk) {
       case this.TOKEN_TYPE.IDENT:
-        return { type: "IDENT", value: this.eat().value, grp: "AST" };
+        return this.parse_ident();
       case this.TOKEN_TYPE.LET:
         return this.parse_var_declaration();
       case this.TOKEN_TYPE.NULL:
@@ -95,6 +95,21 @@ export class Parse {
         this.exit = true
         // process.exit(0);
     }
+  }
+  parse_ident(){
+    let val = this.eat()
+    console.log(val);
+    // this.expect(this.TOKEN_TYPE.R_paren)
+    // let args = this.parse_expr()
+    // this.expect(this.TOKEN_TYPE.L_paren)
+    this.expect(TOKEN_TYPE.R_paren, "Expected opening parenthesis following if keyword");
+    // const test = this.parse_a();
+    let hasargs = true;
+    while (hasargs) {
+      
+    }
+    this.expect(TOKEN_TYPE.L_paren, "Expected closing parenthesis following if keyword");
+    return { type: "IDENT", value: val.value,test:[test], grp: "AST" }
   }
   parse_multiplicative_expr() {
     let left = this.parse_primary_expr();

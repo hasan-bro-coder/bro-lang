@@ -95,6 +95,9 @@ export class Eval {
         let lastEvaluated = { type: "NULL", value: "null" };
         let res = ""
         for (const statement of program.value) {
+            if (!statement) {
+                return "errors"
+            }
             lastEvaluated = this.interpret(statement);
             lastEvaluated?.power == 1 ? res += lastEvaluated.value + "\n" : 0;
         }

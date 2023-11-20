@@ -17,6 +17,7 @@ export const TOKEN_TYPE = {
     MD: "modulo",
     NULL: "null",
     SEMI: ";",
+    COMMA: ",",
     IF: "if",
     WHILE: "while",
     ELSE: "else",
@@ -70,10 +71,12 @@ export class Lexer {
                 tokens.push(this.token(src.shift(), this.TOKEN_TYPE.L_brack));
             }else if (src[0] == "{") {
                 tokens.push(this.token(src.shift(), this.TOKEN_TYPE.R_brack));
-            } else if (src[0] == "%") {
+            }else if (src[0] == "%") {
                 tokens.push(this.token(src.shift(), this.TOKEN_TYPE.MD));
-            } else if (src[0] == ";") {
+            }else if (src[0] == ";") {
                 tokens.push(this.token(src.shift(), this.TOKEN_TYPE.EON));
+            }else if (src[0] == ",") {
+                tokens.push(this.token(src.shift(), this.TOKEN_TYPE.COMMA));
             }else if (src[0] == "&") {
                 tokens.push(this.token(src.shift(), this.TOKEN_TYPE.BIN_OPR));
             }else if (src[0] == "|") {

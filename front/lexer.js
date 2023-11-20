@@ -20,7 +20,9 @@ export const TOKEN_TYPE = {
     IF: "if",
     WHILE: "while",
     ELSE: "else",
+    EON: "endline",
     EOF: "end",
+
 }
 export class Lexer {
     token(val, type) {
@@ -71,7 +73,7 @@ export class Lexer {
             } else if (src[0] == "%") {
                 tokens.push(this.token(src.shift(), this.TOKEN_TYPE.MD));
             } else if (src[0] == ";") {
-                tokens.push(this.token(src.shift(), this.TOKEN_TYPE.SEMI));
+                tokens.push(this.token(src.shift(), this.TOKEN_TYPE.EON));
             }else if (src[0] == "&") {
                 tokens.push(this.token(src.shift(), this.TOKEN_TYPE.BIN_OPR));
             }else if (src[0] == "|") {
@@ -148,6 +150,7 @@ export class Lexer {
                 else if (this.isskippable(src[0])) {
                     if (src[0] == "\n") {
                         line_num++
+                        tokens.push(this.token("EON", this.TOKEN_TYPE.EON));
                     }
                     src.shift()
                 }

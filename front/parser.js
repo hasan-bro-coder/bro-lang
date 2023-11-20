@@ -14,7 +14,8 @@ export class Parse {
     const prev = this.tokens.shift();
     if (!prev || prev.type != type) {
       console.error(`Parser error:\n`, err, "Expecting: ", type);
-      process.exit(1);
+      // process.exit(1);
+      this.exit = true;
     }
     return prev;
   }
@@ -46,7 +47,7 @@ export class Parse {
       grp: "AST",
     };
     // if (this.at().type == this.TOKEN_TYPE.String) this.eat(); // eaat the " at the end
-    // this.expect(this.TOKEN_TYPE.SEMI, "Variable declaration statement must end in semicolon (\";\")");
+    this.expect(this.TOKEN_TYPE.EON, "bro add a (\";\") or a newline after declaring a variable");
 
     return declaration;
   }
@@ -68,12 +69,18 @@ export class Parse {
         return this.parse_if_statement();
         case TOKEN_TYPE.WHILE:
           return this.parse_loop_statement();
-      case this.TOKEN_TYPE.FALSE: this.eat(); // eat if keyword
+      case this.TOKEN_TYPE.FALSE:// eat if keyword
         return { value: this.eat().value, type: "BOOL", grp: "AST" };
       case this.TOKEN_TYPE.NUM:
         return { value: this.eat().value, type: "NUMBER", grp: "AST" };
       case this.TOKEN_TYPE.STR:
         return { value: this.eat().value, type: "STR", grp: "AST" };
+      case this.TOKEN_TYPE.SEMI:
+        this.eat()
+        return { value: "EON", type: "EON", grp: "AST" };
+      case this.TOKEN_TYPE.EON:
+        this.eat()
+        return { value: "EON", type: "EON", grp: "AST" };
       case this.TOKEN_TYPE.R_paren:
         this.eat(); // eat the opening paren
         const value = this.parse_expr();
@@ -85,7 +92,8 @@ export class Parse {
         return value;
       default:
         console.error("bro token cant be parsable:", this.at());
-        process.exit(0);
+        this.exit = true
+        // process.exit(0);
     }
   }
   parse_multiplicative_expr() {
@@ -195,6 +203,7 @@ export class Parse {
     if (this.at().type == this.TOKEN_TYPE.EQ) {
       this.eat(); // advance past the equals
       const value = this.parse_assignment_expr();
+      // this.expect(this.TOKEN_TYPE.EON, "bro add a (\";\") or a newline after declaring a variable");
       return { value, assigne: left, type: "ASS", grp: "AST" };
     }
     return left;
@@ -209,11 +218,15 @@ export class Parse {
   constructor(tokens) {
     this.tokens = tokens;
     this.TOKEN_TYPE = TOKEN_TYPE;
+    this.exit = false
   }
   AST(json) {
     let program = { type: "PROGRAM", value: [], grp: "AST" };
-    while (this.eof()) {
+    while (this.eof() && !this.exit) {
       program.value.push(this.parse_token());
+    }
+    if (this.exit) {
+      return "error"
     }
     return json ? JSON.stringify(program) : program;
   }

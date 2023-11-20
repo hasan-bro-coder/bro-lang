@@ -1,3 +1,6 @@
+import { log } from "console";
+import { type } from "os";
+
 export class Eval {
     eval_numeric_binary_expr(lhs, rhs, opt) {
         if (lhs.type == 'NUMBER' || lhs.type == 'BOOL' && rhs.type == 'NUMBER' || lhs.type == 'BOOL') {
@@ -15,21 +18,21 @@ export class Eval {
                 case "%":
                     return { type: "NUMBER", value: lval % rval, power: 1 };
                 case "==":
-                    return { type: "NUMBER", value: lval == rval ? true : false, power: 1 };
+                    return { type: "BOOL", value: lval == rval ? true : false, power: 1 };
                 case "!=":
-                    return { type: "NUMBER", value: lval != rval ? true : false, power: 1 };
+                    return { type: "BOOL", value: lval != rval ? true : false, power: 1 };
                 case ">":
-                    return { type: "NUMBER", value: lval > rval ? true : false, power: 1 };
+                    return { type: "BOOL", value: lval > rval ? true : false, power: 1 };
                 case "<":
-                    return { type: "NUMBER", value: lval < rval ? true : false, power: 1 };
+                    return { type: "BOOL", value: lval < rval ? true : false, power: 1 };
                 case "<=":
-                    return { type: "NUMBER", value: lval <= rval ? true : false, power: 1 };
+                    return { type: "BOOL", value: lval <= rval ? true : false, power: 1 };
                 case ">=":
-                    return { type: "NUMBER", value: lval >= rval ? true : false, power: 1 };
+                    return { type: "BOOL", value: lval >= rval ? true : false, power: 1 };
                 case "|":
-                    return { type: "NUMBER", value: lval || rval ? true : false, power: 1 };
+                    return { type: "BOOL", value: lval || rval ? true : false, power: 1 };
                 case "&":
-                    return { type: "NUMBER", value: lval && rval ? true : false, power: 1 };
+                    return { type: "BOOL", value: lval && rval ? true : false, power: 1 };
                 default:
                     console.error(`Unknown operator provided in operation: `, lhs, rhs)
                     this.exit = true; return 0;
@@ -42,21 +45,21 @@ export class Eval {
                 case "+":
                     return { type: "STR", value: lval + rval, power: 1 };
                 case "==":
-                    return { type: "NUMBER", value: lval == rval ? true : false, power: 1 };
+                    return { type: "BOOL", value: lval == rval ? true : false, power: 1 };
                 case "!=":
-                    return { type: "NUMBER", value: lval != rval ? true : false, power: 1 };
+                    return { type: "BOOL", value: lval != rval ? true : false, power: 1 };
                 case ">":
-                    return { type: "NUMBER", value: lval > rval ? true : false, power: 1 };
+                    return { type: "BOOL", value: lval > rval ? true : false, power: 1 };
                 case "<":
-                    return { type: "NUMBER", value: lval < rval ? true : false, power: 1 };
+                    return { type: "BOOL", value: lval < rval ? true : false, power: 1 };
                 case "<=":
-                    return { type: "NUMBER", value: lval <= rval ? true : false, power: 1 };
+                    return { type: "BOOL", value: lval <= rval ? true : false, power: 1 };
                 case ">=":
-                    return { type: "NUMBER", value: lval >= rval ? true : false, power: 1 };
+                    return { type: "BOOL", value: lval >= rval ? true : false, power: 1 };
                 case "|":
-                    return { type: "NUMBER", value: lval || rval ? true : false, power: 1 };
+                    return { type: "BOOL", value: lval || rval ? true : false, power: 1 };
                 case "&":
-                    return { type: "NUMBER", value: lval && rval ? true : false, power: 1 };
+                    return { type: "BOOL", value: lval && rval ? true : false, power: 1 };
                 default:
                     console.error(`Unknown operator provided in operation: `, lhs, "&&", rhs)
                     this.exit = true; return 0;
@@ -81,6 +84,9 @@ export class Eval {
         }
     }
     eval_binary_expr(binop) {
+        if (binop.type == "BOOL") {
+            return binop.value == 1 ? {type: "BOOL", value: true} : {type: "BOOL", value: false};
+        }
         const lhs = this.interpret(binop.left);
         const rhs = this.interpret(binop.right);
         return this.eval_numeric_binary_expr(lhs, rhs, binop.opt);
@@ -119,7 +125,11 @@ export class Eval {
         return result;
     }
     eval_if_program(ast) {
-        let opt = this.eval_binary_expr(ast.test)
+        let opt = {type: "BOOL", value: false}
+        if (ast.test.type == "BOOL"){
+            opt.value = ast.test.value == 1 ? true : false;
+        }else {opt = this.eval_binary_expr(ast.test)}
+        // console.log(opt)
         // console.log(opt.value == true ? "yos true" : "nah/uh");
         if (opt.value) {
             return this.eval_body(ast.body)
@@ -131,7 +141,11 @@ export class Eval {
         // return opt
     }
     eval_loop_program(ast) {
-        let opt = this.eval_binary_expr(ast.condition)
+        // let opt = this.eval_binary_expr(ast.condition)
+        let opt = {type: "BOOL", value: false}
+        if (ast.condition.type == "BOOL"){
+            opt.value = ast.condition.value == 1 ? true : false;
+        }else {opt = this.eval_binary_expr(ast.condition)}
         // console.log(opt.value == true ? "yos true" : "nah/uh");
         // if (opt.value) {
             while (opt.value){
@@ -182,6 +196,7 @@ export class Eval {
                 return this.eval_if_program(ast)
             case "LOOP":
                 return this.eval_loop_program(ast)
+            case "EON":
             case "NULL":
                 return null
             case "IDENT":

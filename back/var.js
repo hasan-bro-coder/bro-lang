@@ -1,6 +1,7 @@
 export class ENV{
     constructor(){
         this.vars = new Map();
+        this.funcs = new Map();
     }
     dec_var(name,value){
         if (this.vars.has(name)) throw "variable already exists bro"
@@ -23,5 +24,11 @@ export class ENV{
             return val;
         }
         throw "variable "+ val+" aint exists bro";
+    }
+    add_func(ast){
+        this.funcs.set(ast.name, ast)
+    }
+    run_func(name){
+        return this.funcs.get(name)
     }
 }

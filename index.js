@@ -31,7 +31,7 @@ function spit(data,envs){
           print(new Eval(new Parse(new Lexer(data.toString()).tokenize()).AST(),envs).interpret());
 }
 let env = new ENV()
-env.dec_var("dora",{value:"yo",type:"STR"})
+// env.dec_var("dora",{value:"yo",type:"STR"})
 if (short) {
 (async () => {
   while (true) {

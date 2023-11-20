@@ -58,6 +58,8 @@ export class Parse {
         return this.parse_ident();
       case this.TOKEN_TYPE.LET:
         return this.parse_var_declaration();
+      case this.TOKEN_TYPE.FUN:
+        return this.parse_func_statement();
       case this.TOKEN_TYPE.NULL:
         this.eat();
         return { type: "NULL", value: "null", grp: "AST" };
@@ -96,14 +98,53 @@ export class Parse {
         // process.exit(0);
     }
   }
+  parse_args() {
+    this.expect(this.TOKEN_TYPE.R_paren, "Expected open parenthesis");
+    const args = this.at().type == this.TOKEN_TYPE.L_paren
+        ? []
+        : this.parse_args_list();
+    this.expect(this.TOKEN_TYPE.L_paren, "Missing closing parenthesis inside args list");
+    return args;
+}
+parse_args_list(){
+  const args = [this.parse_assignment_expr()];
+  while (this.at().type == this.TOKEN_TYPE.COMMA && this.eat()) {
+      args.push(this.parse_assignment_expr());
+  }
+  return args;
+}
+  parse_func_statement(){
+    this.eat(); // eat fn keyword
+        const name = this.expect(this.TOKEN_TYPE.IDENT, "Expected function name following fn keyword").value;
+
+        const args = this.parse_args();
+        const params = [];
+        for (const arg of args) {
+            if (arg.type !== "IDENT") {
+                throw "Inside function declaration expected parameters to be of type String"
+            }
+            params.push(arg.value);
+        }
+        const body = this.parse_block_statement();
+        const fn = {
+            body, name, parameters: params, type: "FUNC"
+        };
+        return fn;
+  }
   parse_ident(){
     let val = this.eat()
-    // console.log(val);
+    // this.eat();
     // // this.expect(this.TOKEN_TYPE.R_paren)
-    if(this.eat.type == TOKEN_TYPE.R_paren){
-      let args = this.parse_expr()
+    if(this.at().type == this.TOKEN_TYPE.R_paren){
+      let args = this.parse_args()
+      // console.log(args);
+      // this.eat();
+      // this.expect(this.TOKEN_TYPE.L_paren,"nuh/uh")
+      // this.eat();
+
+      return {type:"FUN_CALL",args:args,value: val.value}
     }
-    // // this.expect(this.TOKEN_TYPE.L_paren)
+    // console.log(this.at());
     // this.expect(TOKEN_TYPE.R_paren, "Expected opening parenthesis following if keyword");
     // // const test = this.parse_a();
     // let hasargs = true;

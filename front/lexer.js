@@ -21,6 +21,7 @@ export const TOKEN_TYPE = {
     IF: "if",
     WHILE: "while",
     ELSE: "else",
+    FUN: "function",
     EON: "endline",
     EOF: "end",
 
@@ -52,6 +53,7 @@ export class Lexer {
             "if": this.TOKEN_TYPE.IF,
             "fi": this.TOKEN_TYPE.ELSE,
             "loop": this.TOKEN_TYPE.WHILE,
+            "fun": this.TOKEN_TYPE.FUN
         }
     }
     tokenize() {

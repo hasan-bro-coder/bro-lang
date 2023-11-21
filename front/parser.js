@@ -63,12 +63,8 @@ export class Parse {
       case this.TOKEN_TYPE.NULL :
         this.eat();
         return { type: "NULL", value: "null", grp: "AST" };
-      case undefined:
-          this.eat();
-          return { type: "NULL", value: "null", grp: "AST" };
-      case "":
-            this.eat();
-            return { type: "NULL", value: "null", grp: "AST" };
+      // case this.TOKEN_TYPE.COMMENT:
+        // return this.parse_comment();
       case this.TOKEN_TYPE.TRUE:
         return { value: this.eat().value, type: "BOOL", grp: "AST" };
       case this.TOKEN_TYPE.TRUE:

@@ -52,7 +52,7 @@ function spit(data, envs) {
   //   print(res_res);
   console.log(data.toString());
   console.log("-----------\n");
-  console.time()
+  // console.time()
   let lex_res = new Lexer(data.toString())
   let lex = lex_res.tokenize()
   if (lex_res.err){print(chalk.redBright("Lexer error:\t") + chalk.red(lex_res.err_text));return 0}
@@ -60,7 +60,7 @@ function spit(data, envs) {
   console.log("-----------\n");
   let ast_res = new Parse(lex)
   let ast = ast_res.AST()
-  if (ast_res.err){print(chalk.redBright("Parser error:\t") + chalk.red(ast_res.err_text));return 0}
+  if (ast_res.err){print(chalk.redBright("Parser error:\t") + chalk.red(ast_res.err_txt));return 0}
   print(ast);
   console.log("-----------\n");
   let res = new Eval(ast, envs).interpret()

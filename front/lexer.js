@@ -17,8 +17,10 @@ export const TOKEN_TYPE = {
     MD: "modulo",
     NULL: "null",
     SEMI: ";",
+    COMMENT: "//",
     COMMA: ",",
     IF: "if",
+    SLASH:"/",
     WHILE: "while",
     ELSE: "else",
     FUN: "function",
@@ -103,6 +105,16 @@ export class Lexer {
                         tokens.push(this.token("==", this.TOKEN_TYPE.BIN_OPR));
                     }
                     else tokens.push(this.token("=", this.TOKEN_TYPE.EQ));
+                }else if (src[0] == "#") {
+                    src.shift();
+                    while(src.length > 0 && (src[0] != ";" || src[0] != "\n")){
+                        src.shift();
+                    }
+                    // if (src[0] == "/") {
+                        // src.shift();
+                    // tokens.push(this.token("#", this.TOKEN_TYPE.COMMENT));
+                    // }
+                    // else tokens.push(this.token("/", this.TOKEN_TYPE.SLASH));
                 }
                 else if (src[0] == ">") {
                     src.shift();

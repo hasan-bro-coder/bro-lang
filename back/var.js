@@ -1,3 +1,4 @@
+// import promt from  'prompt-sync'
 export class ENV {
     constructor(parent) {
         this.parent = parent;
@@ -11,17 +12,24 @@ export class ENV {
             declarationEnv: this,
             body: [{ type: 'IDENT', value: 'a', grp: 'AST' }]
         })
-        this.funcs_def.set("time", {
+        this.funcs_def.set("time_start", {
             type: 'fn',
-            name: 'time',
+            name: 'time_start',
             parameters: [],
             declarationEnv: this,
             body: []
         })
-        this.funcs_def.set("time_end", {
+        this.funcs_def.set("time_log", {
             type: 'fn',
-            name: 'time_end',
+            name: 'time_log',
             parameters: [],
+            declarationEnv: this,
+            body: []
+        })
+        this.funcs_def.set("ask", {
+            type: 'fn',
+            name: 'ask',
+            parameters: ["ques"],
             declarationEnv: this,
             body: []
         })
@@ -72,10 +80,24 @@ export class ENV {
             case "say":
                 console.log(val.map(element => element.value).join(""))
                 break;
-            case "time":
+            case "time_start":
                 console.time()
-            case "time_end":
-                console.timeEnd()
+                break;
+            case "time_log":
+                console.timeLog()
+                break;
+            case "ask":
+                /* TODO NODE */
+                // const readlines = promt({sigint: true})(val[0].value)
+                // readlines.
+                //   console.log(readlines);
+                //   readlines.question(, name => {
+                //     console.log(`Hey there ${name}!`);
+                //     readlines.close();
+                //   });
+                break;
+
+            //     console.timeEnd()
         }
         // if ( == ) {
         // }

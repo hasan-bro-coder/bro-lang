@@ -1,7 +1,9 @@
-var i = 0# 0 ;
-loop(i < 100 | ){
+ask("type a number: ")
+var i = 0 ;
+
+time_start()
+loop(i < 100){
     i = i + 1
     say(i)
 };
-
-time_end()
+time_log()

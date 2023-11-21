@@ -107,8 +107,8 @@ export class Lexer {
                     else tokens.push(this.token("=", this.TOKEN_TYPE.EQ));
                 }else if (src[0] == "#") {
                     src.shift();
-                    while(src.length > 0 && (src[0] != ";" || src[0] != "\n")){
-                        src.shift();
+                    while(src.length > 0 && src[0] != ";" && src[0] != "\n"){
+                        src.shift()
                     }
                     // if (src[0] == "/") {
                         // src.shift();

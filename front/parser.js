@@ -13,9 +13,9 @@ export class Parse {
   expect(type, err) {
     const prev = this.tokens.shift();
     if (!prev || prev.type != type) {
-      console.error(`Parser error:\n`, err, "Expecting: ", type);
-      // process.exit(1);
-      this.exit = true;
+      // process.err(1);
+      this.err = true;
+      this.err_txt = `Parser error:\n`+ err + "Expecting: " + type
     }
     return prev;
   }
@@ -60,9 +60,15 @@ export class Parse {
         return this.parse_var_declaration();
       case this.TOKEN_TYPE.FUN:
         return this.parse_func_statement();
-      case this.TOKEN_TYPE.NULL:
+      case this.TOKEN_TYPE.NULL :
         this.eat();
         return { type: "NULL", value: "null", grp: "AST" };
+      case undefined:
+          this.eat();
+          return { type: "NULL", value: "null", grp: "AST" };
+      case "":
+            this.eat();
+            return { type: "NULL", value: "null", grp: "AST" };
       case this.TOKEN_TYPE.TRUE:
         return { value: this.eat().value, type: "BOOL", grp: "AST" };
       case this.TOKEN_TYPE.TRUE:
@@ -93,9 +99,9 @@ export class Parse {
         // this.expect(this.TOKEN_TYPE.CloseParen, "Unexpected token inside () expr. Expected \")\""); // closing paren
         return value;
       default:
-        console.error("bro token cant be parsable:", this.at());
-        this.exit = true
-        // process.exit(0);
+        this.err_txt = "bro token cant be parsable:", this.at()
+        this.err = true
+        // process.err(0);
     }
   }
   parse_args() {
@@ -276,15 +282,16 @@ parse_args_list(){
   constructor(tokens) {
     this.tokens = tokens;
     this.TOKEN_TYPE = TOKEN_TYPE;
-    this.exit = false
+    this.err = false
+    this.err_txt = ""
   }
   AST(json) {
     let program = { type: "PROGRAM", value: [], grp: "AST" };
-    while (this.eof() && !this.exit) {
+    while (this.eof() && !this.err) {
       program.value.push(this.parse_token());
     }
-    if (this.exit) {
-      return "error"
+    if (this.err) {
+      return this.err_txt
     }
     return json ? JSON.stringify(program) : program;
   }

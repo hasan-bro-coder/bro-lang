@@ -1,12 +1,8 @@
-var dora = "yo";
+var i = 0
 
+loop(i < 100 | hdfghdf){
+    i = i + 1
+    say(i)
+};
 
-fun compile(dora){
-    if(dora == "yo"){
-        print("yoo you good bro")
-    }fi if(dora == "hello"){
-        print("hello bro")
-    }
-}
-
-compile(dora)
+time_end()

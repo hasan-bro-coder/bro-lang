@@ -62,6 +62,24 @@ export class Eval {
                     console.error(`Unknown operator provided in operation: `, lhs, "&&", rhs)
                     this.exit = true; return 0;
             }
+        }else if ((lhs.type == 'STR' && rhs.type == 'NUMBER') || (rhs.type == 'STR' && lhs.type == 'NUMBER')) {
+            let lval = lhs.value;
+            let rval = String(rhs.value);
+            switch (opt) {
+                case "+":
+                    return { type: "STR", value: lval + rval, power: 1 };
+                case "==":
+                    return { type: "BOOL", value: lval == rval ? true : false, power: 1 };
+                case "!=":
+                    return { type: "BOOL", value: lval != rval ? true : false, power: 1 };
+                case "|":
+                    return { type: "BOOL", value: lval || rval ? true : false, power: 1 };
+                case "&":
+                    return { type: "BOOL", value: lval && rval ? true : false, power: 1 };
+                default:
+                    console.error(`Unknown operator provided in operation: `, lhs, opt, rhs)
+                    this.exit = true; return 0;
+            }
         } else {
 
             console.error(`cant do operation with: `, lhs, "&&", rhs)
@@ -74,7 +92,7 @@ export class Eval {
     eval_function_run(ast,env){
         const args = ast.args.map(arg => this.interpret(arg, env));
         if(env.has_def_func(ast.value)){
-            let func = env.run_def_func(ast,this.interpret(ast.args[0]))
+            let func = env.run_def_func(ast,args)
             // for (const i in ast.args) {
             // env.run_def_func(this.interpret(ast.args[i]))
             // }
@@ -117,7 +135,6 @@ export class Eval {
             body: declaration.body,
         };
         let val = env.add_func(fn)
-        console.log(env.funcs);
         return val;
     }
     eval_identifier(ident,env) {
@@ -125,7 +142,11 @@ export class Eval {
             if (env.has_var(ident.value)) {
                 const val = env.get_var(ident.value);
                 return val;
-            } 
+            }else{
+                console.error("bro",ident.value,"not defined")
+                this.exit = true;
+                return { type: "BOOL", value: false }
+            }
         // else {
         //         console.error("this is not defined:", ident);
         //         this.exit = true; return 0;
@@ -196,8 +217,6 @@ export class Eval {
         if (ast.test.type == "BOOL") {
             opt.value = ast.test.value == 1 ? true : false;
         } else { opt = this.eval_binary_expr(ast.test,env) }
-        // console.log(opt)
-        // console.log(opt.value == true ? "yos true" : "nah/uh");
         if (opt.value) {
             return this.eval_body(ast.body,env)
         } else if (ast.alternate) {
@@ -213,11 +232,9 @@ export class Eval {
         if (ast.condition.type == "BOOL") {
             opt.value = ast.condition.value == 1 ? true : false;
         } else { opt = this.eval_binary_expr(ast.condition,env) }
-        // console.log(opt.value == true ? "yos true" : "nah/uh");
-        // if (opt.value) {
         while (opt.value) {
             // console.log(opt);
-            console.log(this.eval_body(ast.body,env).value)
+            this.eval_body(ast.body,env)
             opt = this.eval_binary_expr(ast.condition,env)
         }
         // {

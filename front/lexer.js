@@ -40,10 +40,15 @@ export class Lexer {
         return str == " " || str == "\n" || str == "\t" || str == '\r';
     }
     error(str, line, word) {
-        console.error(`${str}\non line: ${line}\nword:${word}`);
+        this.err = true
+        this.err_text = `${str} on\nline: ${line}\nword: ${word}`
+        // console.error(`${str}\non line: ${line}\nword:${word}`);
+        
     }
     constructor(code) {
+        this.err = false
         this.code = code
+        this.err_text = "error bruh"
         this.TOKEN_TYPE = TOKEN_TYPE
         this.KEW_WORD = {
             "var": this.TOKEN_TYPE.LET,
@@ -83,12 +88,7 @@ export class Lexer {
                 tokens.push(this.token(src.shift(), this.TOKEN_TYPE.BIN_OPR));
             }else if (src[0] == "|") {
                 tokens.push(this.token(src.shift(), this.TOKEN_TYPE.BIN_OPR));
-            }
-            else {
-                // let ident = ""
-                // let done = false
-                // while (src.length > 0 && this.is_char(src[0]) || is_string) {
-                // ident += src.shift()
+            }else {
                 if (this.is_int(src[0])) {
                     let num = ""
                     while (src.length > 0 && this.is_int(src[0]) || src[0] == ".") {
@@ -155,6 +155,7 @@ export class Lexer {
                 else if (this.isskippable(src[0])) {
                     if (src[0] == "\n") {
                         line_num++
+                        word_num = 0
                         tokens.push(this.token("EON", this.TOKEN_TYPE.EON));
                     }
                     src.shift()

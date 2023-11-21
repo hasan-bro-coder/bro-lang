@@ -1,9 +1,16 @@
-ask("type a number: ")
-var i = 0 ;
+var i = 0 ;   
 
-time_start()
 loop(i < 100){
-    i = i + 1
     say(i)
-};
-time_log()
+    i = i + 1 
+    if (i % 15 == 0) {
+        say("fizzbuzz")
+    }
+    fi if(i % 3 == 0) {
+        say("fizz")
+    }
+    fi if(i % 5 == 0) {
+        say("buzz")
+    }
+    # fi {say(i)}
+}

@@ -206,6 +206,11 @@ parse_args_list(){
     const body = this.parse_block_statement();
     return {type: 'LOOP', body: body, condition:test,};
   }
+  ignore_eon(){
+    while (this.at().type == this.TOKEN_TYPE.EON) {
+      this.eat()
+    }
+  }
   parse_if_statement() {
     this.eat()
     this.expect(TOKEN_TYPE.R_paren, "Expected opening parenthesis following if keyword");
@@ -213,6 +218,7 @@ parse_args_list(){
     this.expect(TOKEN_TYPE.L_paren, "Expected closing parenthesis following if keyword");
     const body = this.parse_block_statement();
     let alternate;
+        this.ignore_eon()
         if (this.at().type == this.TOKEN_TYPE.ELSE) {
             this.eat(); // eat "else"
             if (this.at().type == this.TOKEN_TYPE.IF) {

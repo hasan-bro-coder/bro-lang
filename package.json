@@ -1,6 +1,6 @@
 {
   "name": "bro-lang",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -13,10 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bro-lang": "^1.2.2",
     "chalk": "^4.0.0",
-    "console-log-json": "^3.0.2",
-    "enquirer": "^2.4.1",
-    "prompt-sync": "^4.2.0"
+    "enquirer": "^2.4.1"
   }
 }

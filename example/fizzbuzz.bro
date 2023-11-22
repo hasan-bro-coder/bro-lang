@@ -1,5 +1,4 @@
 var i = 0 ;   
-
 loop(i < 100){
     say(i)
     i = i + 1 

@@ -25,20 +25,20 @@ if (prod) {
 function spit(data, envs) {
   // function spit(data, envs) {
   //   let lex = new Lexer(data.toString())
-  //   let lex_res = lex.tokenize()
+  //   let lex_res = lex
   //   print(lex_res)
   //   if (lex.err) {
   //     print(lex.err_txt)
   //     return 0
-  //   }
-  //   let ast = new Parse(lex_res)
-  //   let ast_res = ast.AST()
+  //   } new Eval(new Parse(new Lexer(data.toString()).tokenize()).AST()).interpret()
+  //   let ast = lex_res)
+  //   let ast_res = ast
   //   if (ast.err) {
   //     print(chalk.red(ast.err_txt))
   //     return 0
   //   }
-  //   let res = new Eval(ast_res, envs)
-  //   let res_res = res.interpret()
+  //   let res =ast_res, envs)
+  //   let res_res = res
   //   if (res.err) {
   //     print(chalk.red(res.err_txt))
   //     return 0
@@ -63,8 +63,16 @@ function spit(data, envs) {
   if (ast_res.err){print(chalk.redBright("Parser error:\t") + chalk.red(ast_res.err_txt));return 0}
   print(ast);
   console.log("-----------\n");
-  let res = new Eval(ast, envs).interpret()
-  print(res);
+  let res = new Eval(ast, envs)
+  print(res.interpret());
+  // res.eval_function_run({
+  //   type: 'FUN_CALL',
+  //   args: [
+  //     { value: '1', type: 'NUMBER', grp: 'AST' },
+  //     { value: '2', type: 'NUMBER', grp: 'AST' },
+  //   ],
+  //   value: 'say'
+  // },envs)
   // console.timeEnd()
 }
 let env = new ENV()

@@ -47,7 +47,7 @@ export class Parse {
       grp: "AST",
     };
     // if (this.at().type == this.TOKEN_TYPE.String) this.eat(); // eaat the " at the end
-    this.expect(this.TOKEN_TYPE.EON, "bro add a (\";\") or a newline after declaring a variable");
+    this.expect(this.TOKEN_TYPE.SEMI, "bro add a (\";\") or a newline after declaring a variable");
 
     return declaration;
   }
@@ -79,12 +79,16 @@ export class Parse {
         return { value: this.eat().value, type: "NUMBER", grp: "AST" };
       case this.TOKEN_TYPE.STR:
         return { value: this.eat().value, type: "STR", grp: "AST" };
-      case this.TOKEN_TYPE.SEMI:
-        this.eat()
-        return { value: "EON", type: "EON", grp: "AST" };
-      case this.TOKEN_TYPE.EON:
-        this.eat()
-        return { value: "EON", type: "EON", grp: "AST" };
+      // case this.TOKEN_TYPE.SEMI:
+        // this.eat()
+        // return { value: "EON", type: "EON", grp: "AST" };
+      // case this.TOKEN_TYPE.EON:
+        // break;
+        // this.eat()
+        // this.ignore_eon()
+        // return this.at()
+        // this.ignore_eon()
+        // return { value: "EON", type: "EON", grp: "AST" };
       case this.TOKEN_TYPE.R_paren:
         this.eat(); // eat the opening paren
         const value = this.parse_expr();

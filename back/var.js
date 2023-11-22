@@ -1,4 +1,7 @@
 // import promt from  'prompt-sync'
+import { Lexer } from "../front/lexer.js"
+import { Parse } from "../front/parser.js"
+import { Eval } from "./interpret.js"
 export class ENV {
     constructor(parent) {
         this.parent = parent;
@@ -26,10 +29,10 @@ export class ENV {
             declarationEnv: this,
             body: []
         })
-        this.funcs_def.set("ask", {
+        this.funcs_def.set("run", {
             type: 'fn',
-            name: 'ask',
-            parameters: ["ques"],
+            name: 'run',
+            parameters: ["code"],
             declarationEnv: this,
             body: []
         })
@@ -78,7 +81,8 @@ export class ENV {
         let fun = { res: "" }
         switch (ast.value) {
             case "say":
-                console.log(val.map(element => element.value).join(""))
+                // console.log(ast);
+                console.log(val.map(element => element?.value).join(""))
                 break;
             case "time_start":
                 console.time()
@@ -86,7 +90,9 @@ export class ENV {
             case "time_log":
                 console.timeLog()
                 break;
-            case "ask":
+            case "run":
+                // console.log(val);
+                new Eval(new Parse(new Lexer(val[0].value).tokenize()).AST(),this).interpret()
                 /* TODO NODE */
                 // const readlines = promt({sigint: true})(val[0].value)
                 // readlines.

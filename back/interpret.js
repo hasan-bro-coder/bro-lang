@@ -91,12 +91,13 @@ export class Eval {
     }
     eval_function_run(ast,env){
         const args = ast.args.map(arg => this.interpret(arg, env));
+        // console.log("args",args);
         if(env.has_def_func(ast.value)){
             let func = env.run_def_func(ast,args)
             // for (const i in ast.args) {
             // env.run_def_func(this.interpret(ast.args[i]))
             // }
-            return func.res
+            return func
         }
         if(env.has_func(ast.value)){
             let func = env.run_func(ast.value)
@@ -285,6 +286,7 @@ export class Eval {
             case "FUN_CALL":
                 return this.eval_function_run(ast,env || this.Env)
             case "EON":
+                
             case "NULL":
                 return null
             case "IDENT":

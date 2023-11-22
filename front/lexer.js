@@ -83,7 +83,7 @@ export class Lexer {
             }else if (src[0] == "%") {
                 tokens.push(this.token(src.shift(), this.TOKEN_TYPE.MD));
             }else if (src[0] == ";") {
-                tokens.push(this.token(src.shift(), this.TOKEN_TYPE.EON));
+                tokens.push(this.token(src.shift(), this.TOKEN_TYPE.SEMI));
             }else if (src[0] == ",") {
                 tokens.push(this.token(src.shift(), this.TOKEN_TYPE.COMMA));
             }else if (src[0] == "&") {
@@ -107,7 +107,7 @@ export class Lexer {
                     else tokens.push(this.token("=", this.TOKEN_TYPE.EQ));
                 }else if (src[0] == "#") {
                     src.shift();
-                    while(src.length > 0 && src[0] != ";" && src[0] != "\n"){
+                    while(src.length > 0 && src[0] != "\n"){
                         src.shift()
                     }
                     // if (src[0] == "/") {
@@ -146,8 +146,19 @@ export class Lexer {
                     let str = "";
                     src.shift();
                     while (src.length > 0 && src[0] !== '"') {
+                    str += src.shift();
+                    if (src[0] == "\\") {
+                        console.log("bro ! is",src[0]);
+                        src.shift();
+                        console.log("bro ! is",src[0]);
                         str += src.shift();
                     }
+                    }
+                    // if (src[0] == "\\") {
+                        // console.log("bro ! is");
+                        // src.shift();
+                        // src.shift();
+                    // }
                     src.shift();
                     tokens.push(this.token(str, this.TOKEN_TYPE.STR));
                 } else if (this.is_char(src[0])) {
@@ -168,7 +179,7 @@ export class Lexer {
                     if (src[0] == "\n") {
                         line_num++
                         word_num = 0
-                        tokens.push(this.token("EON", this.TOKEN_TYPE.EON));
+                        // tokens.push(this.token("EON", this.TOKEN_TYPE.EON));
                     }
                     src.shift()
                 }

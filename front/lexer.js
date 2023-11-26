@@ -23,6 +23,7 @@ export const TOKEN_TYPE = {
     SLASH:"/",
     WHILE: "while",
     ELSE: "else",
+    RETURN: "return",
     FUN: "function",
     EON: "endline",
     EOF: "end",
@@ -60,7 +61,8 @@ export class Lexer {
             "if": this.TOKEN_TYPE.IF,
             "fi": this.TOKEN_TYPE.ELSE,
             "loop": this.TOKEN_TYPE.WHILE,
-            "fun": this.TOKEN_TYPE.FUN
+            "fun": this.TOKEN_TYPE.FUN,
+            "return": this.TOKEN_TYPE.RETURN
         }
     }
     tokenize() {
@@ -70,7 +72,7 @@ export class Lexer {
         let line_num = 1
         while (src.length > 0) {
             // BEGIN PARSING ONE CHARACTER TOKENS
-            if (src[0] == "+" || src[0] == "-" || src[0] == "*" || src[0] == "%" || src[0] == "/") {
+            if (src[0] == "+" || src[0] == "*" || src[0] == "%" || src[0] == "/") {
                 tokens.push(this.token(src.shift(), this.TOKEN_TYPE.BIN_OPR));
             } else if (src[0] == ")") {
                 tokens.push(this.token(src.shift(), this.TOKEN_TYPE.L_paren));
@@ -91,7 +93,21 @@ export class Lexer {
             }else if (src[0] == "|") {
                 tokens.push(this.token(src.shift(), this.TOKEN_TYPE.BIN_OPR));
             }else {
-                if (this.is_int(src[0])) {
+                if (src[0] == "-") {
+                     let tok = src.shift();
+                     if (this.is_int(src[0])) {
+                        let num = "-"
+                    while (src.length > 0 && this.is_int(src[0]) || src[0] == ".") {
+                        num += src.shift()
+                    }
+                    tokens.push(this.token(num, this.TOKEN_TYPE.NUM));
+                     }         else{
+                        1 -1
+                tokens.push(this.token(tok, this.TOKEN_TYPE.BIN_OPR));
+
+                     }          
+                }
+                else if (this.is_int(src[0])) {
                     let num = ""
                     while (src.length > 0 && this.is_int(src[0]) || src[0] == ".") {
                         num += src.shift()
@@ -160,7 +176,7 @@ export class Lexer {
                         // src.shift();
                     // }
                     src.shift();
-                    tokens.push(this.token(str, this.TOKEN_TYPE.STR));
+                    tokens.push(this.token(str.replace("\\n","\n").replace("\\t","\t").replace("\\r","\r"), this.TOKEN_TYPE.STR));
                 } else if (this.is_char(src[0])) {
                     let ident = ""
                     while (src.length > 0 && this.is_char(src[0])) {

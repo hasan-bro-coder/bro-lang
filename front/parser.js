@@ -56,6 +56,8 @@ export class Parse {
     switch (tk) {
       case this.TOKEN_TYPE.IDENT:
         return this.parse_ident();
+      case this.TOKEN_TYPE.RETURN:
+        return this.parse_return();
       case this.TOKEN_TYPE.LET:
         return this.parse_var_declaration();
       case this.TOKEN_TYPE.FUN:
@@ -71,8 +73,8 @@ export class Parse {
         return { value: this.eat().value, type: "BOOL", grp: "AST" };
       case TOKEN_TYPE.IF:
         return this.parse_if_statement();
-        case TOKEN_TYPE.WHILE:
-          return this.parse_loop_statement();
+      case TOKEN_TYPE.WHILE:
+        return this.parse_loop_statement();
       case this.TOKEN_TYPE.FALSE:// eat if keyword
         return { value: this.eat().value, type: "BOOL", grp: "AST" };
       case this.TOKEN_TYPE.NUM:
@@ -103,6 +105,12 @@ export class Parse {
         this.err = true
         // process.err(0);
     }
+  }
+  parse_return(){
+    console.log(this.eat());
+    let val = this.parse_additive_expr()
+    console.log(val);
+    return {value: val,type: "RETURN"}
   }
   parse_args() {
     this.expect(this.TOKEN_TYPE.R_paren, "Expected open parenthesis");

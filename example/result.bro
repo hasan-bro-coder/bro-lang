@@ -1,22 +1,26 @@
-fun calcResult(total,most,least){
-    var mark  = ((most - least) / total)*100 ;
-    var result = " ";
-    if(mark == 100){
-       result = "Upgrading"
-    }fi if(mark >= 50){
-       result = "Achieving"
-    }fi if(mark >= 25){
-       result = "Advancing"
-    }fi if(mark >= 0){
-       result = "Activating"
-    }fi if(mark >= -25){
-       result = "Exploring"
-    }fi if(mark >= -50){
-       result = "Developing"
-    }fi if(mark == -100){
-       result = "Elementary"
-    }
-    "Mark: "+ mark + "\nResult: " + result
-}
+# fun calcResult(total,most,least) {
+#     var mark  = ((most - least) / total)*100 
+#     var result = " "
+#     if(mark == 100) do
+#        result = "Upgrading"
+#     end fi if(mark >= 50) do
+#        result = "Achieving"
+#     end fi if(mark >= 25) do
+#        result = "Advancing"
+#     end fi if(mark >= 0) do
+#        result = "Activating"
+#     end fi if(mark >= -25) do
+#        result = "Exploring"
+#     end fi if(mark >= -50) do
+#        result = "Developing"
+#     end fi if(mark == -100) do
+#        result = "Elementary"
+#     end 
+#     return "Mark: "+ mark + "\nResult: " + result
+# }
 
-say(calcResult(10,3,5))
+# say(calcResult(10,3,5))
+
+fun yo(){
+   say("yo")
+}

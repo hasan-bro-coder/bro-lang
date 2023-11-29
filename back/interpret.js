@@ -1,9 +1,11 @@
 import { ENV } from "./var.js";
+// import { Lexer } from "../front/lexer.js";
+// import { Lexer } from "../front/lexer.js";
 export class Eval {
     eval_numeric_binary_expr(lhs, rhs, opt) {
-        if ((lhs.type == 'NUMBER' || lhs.type == 'BOOL') && (rhs.type == 'NUMBER' || lhs.type == 'BOOL')) {
-            let lval = Number(lhs.value);
-            let rval = Number(rhs.value);
+        if ((lhs.type == 'NUMBER' || lhs.type == 'BOOL' || lhs.type == "NULL") && (rhs.type == 'NUMBER' || lhs.type == 'BOOL' || rhs.type == 'NULL')) {
+            let lval = Number(lhs.value == "null" ? 0 : lhs.value);
+            let rval = Number(rhs.value == "null" ? 0 : rhs.value);
             switch (opt) {
                 case "+":
                     return { type: "NUMBER", value: lval + rval, power: 1 };
@@ -17,6 +19,8 @@ export class Eval {
                     return { type: "NUMBER", value: lval % rval, power: 1 };
                 case "==":
                     return { type: "BOOL", value: lval == rval ? true : false, power: 1 };
+                case "===":
+                    return { type: "BOOL", value: lhs.value === rhs.value ? true : false, power: 1 };
                 case "!=":
                     return { type: "BOOL", value: lval != rval ? true : false, power: 1 };
                 case ">":
@@ -44,6 +48,8 @@ export class Eval {
                     return { type: "STR", value: lval + rval, power: 1 };
                 case "==":
                     return { type: "BOOL", value: lval == rval ? true : false, power: 1 };
+                case "===":
+                    return { type: "BOOL", value: lhs.value === rhs.value ? true : false, power: 1 };
                 case "!=":
                     return { type: "BOOL", value: lval != rval ? true : false, power: 1 };
                 case ">":
@@ -62,14 +68,16 @@ export class Eval {
                     console.error(`Unknown operator provided in operation: `, lhs, "&&", rhs)
                     this.exit = true; return 0;
             }
-        } else if ((lhs.type == 'STR' && rhs.type == 'NUMBER') || (rhs.type == 'STR' && lhs.type == 'NUMBER')) {
-            let lval = String(lhs.value);
-            let rval = String(rhs.value);
+        } else if ((lhs.type == 'STR' || lhs.type == 'NUMBER' || lhs.type == 'NULL') && (rhs.type == 'STR' || rhs.type == 'NUMBER' || rhs.type == 'NULL')) {
+            let lval = String(lhs.type == "NULL" ? "" : lhs.value);
+            let rval = String(rhs.type == "NULL" ? "" : rhs.value);
             switch (opt) {
                 case "+":
                     return { type: "STR", value: lval + rval, power: 1 };
                 case "==":
                     return { type: "BOOL", value: lval == rval ? true : false, power: 1 };
+                case "===":
+                    return { type: "BOOL", value: (lhs.value === rhs.value) && lhs.type == rhs.type ? true : false, power: 1 };
                 case "!=":
                     return { type: "BOOL", value: lval != rval ? true : false, power: 1 };
                 case "|":
@@ -109,7 +117,7 @@ export class Eval {
                 // TODO check the bounds here
                 // verify arity of function
                 const varname = func.parameters[i];
-                scope.dec_var(varname, args[i]);
+                scope.dec_var(varname, args[i] || { value: "null", type: "NULL" });
             }
             return this.eval_body(func.body, scope, true)
         }
@@ -144,9 +152,9 @@ export class Eval {
             const val = env.get_var(ident.value);
             return val;
         } else {
-            console.error("bro", ident.value, "not defined")
-            this.exit = true;
-            return { type: "BOOL", value: false }
+            // console.error("bro", ident.value, "not defined")
+            // this.exit = true;
+            return { type: "NULL", value: "null" }
         }
         // else {
         //         console.error("this is not defined:", ident);
@@ -173,14 +181,24 @@ export class Eval {
     }
     eval_program(program, env) {
         let lastEvaluated = { type: "NULL", value: "null" };
-        let res = ""
-        for (const statement of program.value) {
-            if (!statement) {
-                return "errors"
+        let res = "";
+        (async()=>{
+            while(program.value.length > 0) {
+                if (!program.value[0]) {
+                    return "errors"
+                }
+                if (program.value[0].type == "IMPORT") {
+                lastEvaluated = await this.interpret(program.value[0], env)
+                program.value.shift()
+                }else
+                {
+                    lastEvaluated = this.interpret(program.value[0], env)
+                    program.value.shift()
+                }
+                
+                lastEvaluated?.power == 1 ? res += lastEvaluated.value + "\n" : 0;
             }
-            lastEvaluated = this.interpret(statement, env);
-            lastEvaluated?.power == 1 ? res += lastEvaluated.value + "\n" : 0;
-        }
+        })()
         return res
     }
     eval_assignment(node, env) {
@@ -229,7 +247,35 @@ export class Eval {
         }
         // return opt
     }
-    eval_return_program(ast,env){
+    async eval_import_function(ast, envs) {
+        let { Lexer } = await import("../front/lexer.js")
+        let { Parse } = await import("../front/parser.js")
+        let { readFileSync } = await import("fs")
+        let util = await import("util")
+        function print(data) {
+            typeof data === 'object' || Array.isArray(data) ? console.log(util.inspect(data, true, 12, true)) : console.log(data)
+            // console.log(util.inspect(data,true,12,true))
+        }
+        (async()=>{
+          let data = await readFileSync(ast.value.value, "utf8") 
+          {
+                // console.log(data);
+                let lex_res = new Lexer(data.toString())
+                let lex = lex_res.tokenize()
+                // print(lex)
+                // if (lex_res.err) { print(chalk.redBright("Lexer error:\t") + chalk.red(lex_res.err_text)); return 0 }
+                let ast_res = new Parse(lex)
+                let ast = ast_res.AST()
+                // if (ast_res.err) { print(chalk.redBright("Parser error:\t") + chalk.red(ast_res.err_txt)); return 0 }
+                // print(ast);
+                // console.log("-----------\n");
+                let val = new Eval(ast, envs).interpret()
+                return val
+            }
+        })()
+        // console.log(Lexer);
+    }
+    eval_return_program(ast, env) {
         this.return = true
         return this.interpret(ast.value, env);
     }
@@ -294,10 +340,10 @@ export class Eval {
                 return this.eval_function_declaration(ast, env || this.Env)
             case "FUN_CALL":
                 return this.eval_function_run(ast, env || this.Env)
-            case "EON":
-
             case "NULL":
-                return null
+                return { type: "NULL", value: "null" }
+            case "IMPORT":
+                return this.eval_import_function(ast, env || this.Env)
             case "IDENT":
                 return this.eval_identifier(ast, env || this.Env)
             case "ASS":

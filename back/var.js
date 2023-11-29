@@ -39,7 +39,10 @@ export class ENV {
 
     }
     dec_var(name, value) {
-        if (this.vars.has(name)) throw "variable already exists bro"
+        if (this.vars.has(name)) {
+            console.error("variable '"+name+"' already exists bro")
+            process.exit(1)
+        }
         this.vars.set(name, value);
         return value;
     }
@@ -115,7 +118,7 @@ export class ENV {
     }
     resolve(varname) {
         if (this.vars.has(varname)) return this;
-        if (this.parent == undefined) throw `Cannot resolve '${varname}' as it does not exist.`;
+        if (this.parent == undefined) {console.error(`Cannot resolve '${varname}' as it does not exist.`);return {type:"NULL",value:"null"}};
         return this.parent.resolve(varname);
     }
 }

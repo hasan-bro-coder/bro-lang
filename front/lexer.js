@@ -6,8 +6,8 @@ export const TOKEN_TYPE = {
     R_paren: "(",
     L_brack: "}",
     R_brack: "{",
-    L_paren: ")",
-    R_paren: "(",
+    L_brace: "]",
+    R_brace: "[",
     NUM: "num",
     TRUE: "true",
     FALSE: "false",
@@ -20,6 +20,9 @@ export const TOKEN_TYPE = {
     COMMENT: "//",
     COMMA: ",",
     IF: "if",
+    IMPORT: "add",
+    END: "end_kew_word",
+    DO: "do",
     SLASH:"/",
     WHILE: "while",
     ELSE: "else",
@@ -27,7 +30,6 @@ export const TOKEN_TYPE = {
     FUN: "function",
     EON: "endline",
     EOF: "end",
-
 }
 export class Lexer {
     token(val, type) {
@@ -56,13 +58,18 @@ export class Lexer {
         this.KEW_WORD = {
             "var": this.TOKEN_TYPE.LET,
             "null": this.TOKEN_TYPE.NULL,
+            "shotto": this.TOKEN_TYPE.TRUE,
+            "mittha": this.TOKEN_TYPE.FALSE,
             "true": this.TOKEN_TYPE.TRUE,
             "false": this.TOKEN_TYPE.FALSE,
             "if": this.TOKEN_TYPE.IF,
             "fi": this.TOKEN_TYPE.ELSE,
             "loop": this.TOKEN_TYPE.WHILE,
             "fun": this.TOKEN_TYPE.FUN,
-            "return": this.TOKEN_TYPE.RETURN
+            "return": this.TOKEN_TYPE.RETURN,
+            "do": this.TOKEN_TYPE.DO,
+            "end": this.TOKEN_TYPE.END,
+            "add": this.TOKEN_TYPE.IMPORT,
         }
     }
     tokenize() {
@@ -78,6 +85,10 @@ export class Lexer {
                 tokens.push(this.token(src.shift(), this.TOKEN_TYPE.L_paren));
             }else if (src[0] == "(") {
                 tokens.push(this.token(src.shift(), this.TOKEN_TYPE.R_paren));
+            }else if (src[0] == "]") {
+                tokens.push(this.token(src.shift(), this.TOKEN_TYPE.L_brace));
+            }else if (src[0] == "[") {
+                tokens.push(this.token(src.shift(), this.TOKEN_TYPE.R_brace));
             }else if (src[0] == "}") {
                 tokens.push(this.token(src.shift(), this.TOKEN_TYPE.L_brack));
             }else if (src[0] == "{") {
@@ -118,7 +129,10 @@ export class Lexer {
                     src.shift();
                     if (src[0] == "=") {
                         src.shift();
-                        tokens.push(this.token("==", this.TOKEN_TYPE.BIN_OPR));
+                        if (src[0] == "=") {
+                            src.shift()
+                            tokens.push(this.token("===", this.TOKEN_TYPE.BIN_OPR));
+                        } else {tokens.push(this.token("==", this.TOKEN_TYPE.BIN_OPR))}
                     }
                     else tokens.push(this.token("=", this.TOKEN_TYPE.EQ));
                 }else if (src[0] == "#") {
@@ -164,11 +178,13 @@ export class Lexer {
                     while (src.length > 0 && src[0] !== '"') {
                     str += src.shift();
                     if (src[0] == "\\") {
-                        console.log("bro ! is",src[0]);
                         src.shift();
-                        console.log("bro ! is",src[0]);
                         str += src.shift();
                     }
+                    }
+                    if (src.length == 0 && src[0] !== '"') {
+                        this.err = true
+                        this.err_text = "expected \" at the end of string bro"
                     }
                     // if (src[0] == "\\") {
                         // console.log("bro ! is");
@@ -185,7 +201,7 @@ export class Lexer {
                     let res_type = this.KEW_WORD[ident]
                     if (typeof res_type == "string") {
                         //         // if (res_type == "7") {
-                        tokens.push(this.token(ident == "true" ? 1 : ident == "false" ? 0 : ident, res_type));
+                        tokens.push(this.token(ident == "true" || ident == "shotto" ? 1 : ident == "false" || ident == "mittha" ? 0 : ident, res_type));
                         // }
                     } else {
                         tokens.push(this.token(ident, this.TOKEN_TYPE.IDENT));
@@ -249,7 +265,7 @@ export class Lexer {
             // }
             word_num++
         }
-        tokens.push(this.token('END', this.TOKEN_TYPE.EOF))
+        tokens.push(this.token('END_OF_FILE', this.TOKEN_TYPE.EOF))
         return tokens
     }
 }

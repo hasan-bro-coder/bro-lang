@@ -3,3 +3,6 @@ syntax
 test
 bros
 gits
+.gitignore
+.replit
+replit.nix

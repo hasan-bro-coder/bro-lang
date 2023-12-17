@@ -32,7 +32,8 @@ export const TOKEN_TYPE = {
 	FUN: "function",
 	FUNC: "functions",
 	EON: "endline",
-	DBLOPR:"++",
+	DBLOPR:"+=",
+	DBLEQ:"+=",
 	EOF: "end",
 }
 export class Lexer {
@@ -88,7 +89,11 @@ export class Lexer {
 		while (src.length > 0) {
 			// BEGIN PARSING ONE CHARACTER TOKENS
 			if (src[0] == "*" || src[0] == "%" || src[0] == "/") {
-				tokens.push(this.token(src.shift(), this.TOKEN_TYPE.BIN_OPR));
+				let val = src.shift()
+				if(src[0] == "="){
+					tokens.push(this.token(val , this.TOKEN_TYPE.DBLEQ));
+					src.shift()
+				}else tokens.push(this.token(val , this.TOKEN_TYPE.BIN_OPR));
 			} else if (src[0] == ")") {
 				tokens.push(this.token(src.shift(), this.TOKEN_TYPE.L_paren));
 			}else if (src[0] == "(") {
@@ -124,8 +129,10 @@ export class Lexer {
 						num += src.shift()
 					}
 					tokens.push(this.token(num, this.TOKEN_TYPE.NUM));
-					 }         else{
-						1 -1
+					 }else if(src[0] == "="){
+						 tokens.push(this.token(tok, this.TOKEN_TYPE.DBLEQ));
+						 src.shift()
+					}else{
 				tokens.push(this.token(tok, this.TOKEN_TYPE.BIN_OPR));
 
 					 }          
@@ -134,7 +141,10 @@ export class Lexer {
 						 let tok = src.shift();
 						 if (src[0] == "+") {
 						tokens.push(this.token("++", this.TOKEN_TYPE.DBLOPR));
-						 }else{
+						}else if (src[0] == "="){
+						tokens.push(this.token(tok, this.TOKEN_TYPE.DBLEQ));
+							 src.shift()
+						}else{
 					tokens.push(this.token(tok, this.TOKEN_TYPE.BIN_OPR));
 						 }          
 					}

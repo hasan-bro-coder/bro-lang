@@ -1,6 +1,6 @@
 import { TOKEN_TYPE } from "./lexer.js";
 import { Eval } from "../back/interpret.js";
-import { ENV } from "../back/var.js";
+// import { ENV } from "../back/var.js";
 export class Parse {
   eof() {
 	return this.tokens[0].type != this.TOKEN_TYPE.EOF;
@@ -100,9 +100,9 @@ export class Parse {
 		this.eat();
 		return { type: "NULL", value: "null", grp: "AST" };
 	  case this.TOKEN_TYPE.TRUE:
-		return { value: this.eat().value, type: "BOOL", grp: "AST" };
+		return { value: this.eat().value == 1 ? true : false, type: "BOOL", grp: "AST" };
 	  case this.TOKEN_TYPE.FALSE:
-		return { value: this.eat().value, type: "BOOL", grp: "AST" };
+		return { value: this.eat().value == 1 ? true : false, type: "BOOL", grp: "AST" };
 	  case TOKEN_TYPE.IF:
 		return this.parse_if_statement();
 	  case TOKEN_TYPE.WHILE:
@@ -171,6 +171,7 @@ parse_args_list(){
   parse_func_statement(){
 	this.eat(); // eat fn keyword
 		const name = this.expect(this.TOKEN_TYPE.IDENT, "Expected function name following fn keyword").value;
+		let anonym = name == "_" || name == "anonym" 
 		const args = this.parse_args();
 		const params = [];
 		for (const arg of args) {
@@ -182,7 +183,7 @@ parse_args_list(){
 		}
 		const body = this.parse_block_statement();
 		const fn = {
-			body, name, parameters: params, type: "FUNC"
+			body, name, parameters: params, type: anonym ? "FUNC_ANON" : "FUNC"
 		};
 		return fn;
   }
@@ -241,6 +242,7 @@ parse_args_list(){
 		let call_expr = {
 			  type: "FUN_CALL",
 			  value:caller.value,
+			  caller,
 			  args: this.parse_args(),
 			};
 			if (this.at().type ==  this.TOKEN_TYPE.R_paren) {
@@ -251,7 +253,7 @@ parse_args_list(){
 	}
 	parse_member_expr(){
 		let object = this.parse_primary_expr();
-
+		let varname = object
 	while (
 		  this.at().type == this.TOKEN_TYPE.DOT || this.at().type == this.TOKEN_TYPE.R_brace
 		) {
@@ -275,7 +277,7 @@ parse_args_list(){
 		  }
 
 		  object = {
-			// var: object,
+			var: varname,
 			type: "MEMB",
 			object,
 			value: property,
@@ -287,7 +289,7 @@ parse_args_list(){
   parse_multiplicative_expr() {
 	// let left = this.parse_primary_expr();
 	  let left = this.parse_call_member_expr();
-	while (["/", "*", "%"].includes(this.at().value)) {
+	while (["/", "*", "%"].includes(this.at().value)&& this.at().type == this.TOKEN_TYPE.BIN_OPR) {
 	  const operator = this.eat().value;
 	  // const right = this.parse_primary_expr();
 		  let right = this.parse_call_member_expr();
@@ -304,7 +306,7 @@ parse_args_list(){
   }
   parse_additive_expr() {
 	let left = this.parse_multiplicative_expr();
-	while (["+", "-", "<", ">"].includes(this.at().value)) {
+	while (["+", "-", "<", ">"].includes(this.at().value) && this.at().type == this.TOKEN_TYPE.BIN_OPR) {
 	  const operator = this.eat().value;
 	  const right = this.parse_multiplicative_expr();
 	  left = {
@@ -405,15 +407,27 @@ parse_args_list(){
 	//     // return this.parse_additive_expr()
   }
 	// parse_dblopr(){
-		
+
 	// }
+  parse_array(){
+	  if (this.at().type !== this.TOKEN_TYPE.R_brace) {
+			  return this.parse_ken_bool_expr()
+	  }
+	  this.eat()
+	  let props = [this.parse_assignment_expr()];
+		while (this.at().type == this.TOKEN_TYPE.COMMA && this.eat()) {
+			props.push(this.parse_assignment_expr());
+		}
+	  this.expect(this.TOKEN_TYPE.L_brace,"bro add the fucking ] bro")
+	return {type: "ARRAY", props: props, grp: "AST"};
+  }
   parse_obj_expr(){
 	  if (this.at().type !== this.TOKEN_TYPE.R_brack) {
-	  	  	return this.parse_ken_bool_expr()
+			return this.parse_array()
 	  }
 	  this.eat(); // advance past open brace.
 	  const properties = [];
-	  
+
 	  while (this.eof() && this.at().type != this.TOKEN_TYPE.L_brack) {
 		const key =
 		  this.expect(this.TOKEN_TYPE.IDENT, "Object literal key exprected").value;
@@ -421,11 +435,11 @@ parse_args_list(){
 		// Allows shorthand key: pair -> { key, }
 		if (this.at().type == this.TOKEN_TYPE.COMMA) {
 		  this.eat(); // advance past comma
-		  properties.push({ key, kind: "PROP" });
+		  properties.push({ key, type: "PROP" });
 		  continue;
 		} // Allows shorthand key: pair -> { key }
 		else if (this.at().type == this.TOKEN_TYPE.L_brack) {
-		  properties.push({ key, kind: "PROP" });
+		  properties.push({ key, type: "PROP" });
 		  continue;
 		}
 		// { key: val }
@@ -435,7 +449,7 @@ parse_args_list(){
 		);
 		const value = this.parse_expr();
 
-		properties.push({ kind: "PROP", value, key });
+		properties.push({ type: "PROP", value, key });
 		if (this.at().type != this.TOKEN_TYPE.L_brack) {
 		  this.expect(
 			  this.TOKEN_TYPE.COMMA,
@@ -446,16 +460,16 @@ parse_args_list(){
 
 	  this.expect(this.TOKEN_TYPE.L_brack, "Object literal missing closing brace.");
 	  return { type: "OBJ", properties , grp: "AST" };
-	  
+
   }
   parse_assignment_expr() {
 	const left = this.parse_obj_expr();
 	// const left = this.parse_additive_expr()
-	if (this.at().type == this.TOKEN_TYPE.EQ || this.at().type == this.TOKEN_TYPE.DBL_EQ) {
-	  this.eat(); // advance past the equals
+	if (this.at().type == this.TOKEN_TYPE.EQ || this.at().type == this.TOKEN_TYPE.DBLEQ) {
+	  let val = this.eat(); // advance past the equals
 	  const value = this.parse_assignment_expr();
 	  // this.expect(this.TOKEN_TYPE.EON, "bro add a (\";\") or a newline after declaring a variable");
-	  return { value, assigne: left, type: "ASS", grp: "AST" };
+	  return { value, assigne: left,opt: val.type == this.TOKEN_TYPE.DBLEQ ? val.value : "=", type: "ASS", grp: "AST" };
 	}
 	return left;
 }			
@@ -472,17 +486,17 @@ parse_args_list(){
 	this.err = false
 	this.err_txt = "donno what is the error bro"
   }
-  AST(jit) {
+  AST(jit,env) {
 	let program = { type: "PROGRAM", value: [], grp: "AST" };
 	if(jit){
-		let env = new ENV()
-		while (this.eof() && !this.err) {
-			let val = this.parse_token()
-		  	program.value.push(val);
-			let res = new Eval(val, env)
-			let res_res = res.interpret()
-			// res_res&&console.log(res_res);
+		(async()=>{
+			while (this.eof() && !this.err) {
+				let val = this.parse_token()
+				program.value.push(val);
+				let res = new Eval(val, env)
+				let res_res = res.interpret()
 			}
+		})()
 	}else{
 		while (this.eof() && !this.err) {
 			let val = this.parse_token()

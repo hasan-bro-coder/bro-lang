@@ -69,9 +69,9 @@ i = null     # null
   you can define if statements like this
   ```py
   i = 1
-  if (i > 0){
+  if (i > 0)do 
       say("its a positive number")
-  }fi if( i == 0 ){ # remember there is no else its fi
+  end fi if( i == 0 ){ # remember there is no else its fi
       say("the number is 0")
   }fi{
       say("its a negative number")

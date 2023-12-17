@@ -17,9 +17,9 @@ export class Eval {
 				case "%":
 					return { type: "NUMBER", value: lval % rval, power: 1 };
 				case "==":
-					return { type: "BOOL", value: lval == rval ? true : false, power: 1 };
+					return { type: "BOOL", value: lhs.value == rhs.value ? true : false, power: 1 };
 				case "===":
-					return { type: "BOOL", value: lhs.value === rhs.value ? true : false, power: 1 };
+					return { type: "BOOL", value: (lhs.value === rhs.value) && lhs.type == rhs.type ? true : false, power: 1 };
 				case "!=":
 					return { type: "BOOL", value: lval != rval ? true : false, power: 1 };
 				case ">":
@@ -48,7 +48,7 @@ export class Eval {
 				case "==":
 					return { type: "BOOL", value: lval == rval ? true : false, power: 1 };
 				case "===":
-					return { type: "BOOL", value: lhs.value === rhs.value ? true : false, power: 1 };
+					return { type: "BOOL", value:(lhs.value === rhs.value) && lhs.type == rhs.type ? true : false, power: 1 };
 				case "!=":
 					return { type: "BOOL", value: lval != rval ? true : false, power: 1 };
 				case "~=":
@@ -76,11 +76,11 @@ export class Eval {
 				case "+":
 					return { type: "STR", value: lval + rval, power: 1 };
 				case "==":
-					return { type: "BOOL", value: lval == rval ? true : false, power: 1 };
+					return { type: "BOOL", value: lval == rval, power: 1 };
 				case "===":
 					return { type: "BOOL", value: (lhs.value === rhs.value) && lhs.type == rhs.type ? true : false, power: 1 };
 				case "!=":
-					return { type: "BOOL", value: lval != rval ? true : false, power: 1 };
+					return { type: "BOOL", value: lval != rval , power: 1 };
 				case "|":
 					return { type: "BOOL", value: lval || rval ? true : false, power: 1 };
 				case "&":
@@ -100,13 +100,32 @@ export class Eval {
 	}
 	eval_function_run(ast, env) {
 		const args = ast.args.map(arg => this.interpret(arg, env));
+		let func
+		if (ast.caller.type == "MEMB") {
+			func = this.interpret(ast.caller)
+			if (!func) {
+				this.exit = true
+				return 0
+			}
+			const scope = new ENV(func.declarationEnv);
+			for (let i = 0; i < func.parameters.length; i++) {
+				const varname = func.parameters[i];
+				scope.dec_var(varname, args[i] || { value: "null", type: "NULL" });
+			}
+			this.return = false
+		if (env.has_def_func(ast.value.value,ast.caller?.var.value)) {
+				return env.run_def_obj_func(ast)
+			} 
+			return this.eval_body(func.body, scope, false)
+		}
 		if (env.has_def_func(ast.value)) {
-			let func = env.run_def_func(ast, args)
+			func = env.run_def_func(ast, args)
 			return func
 		}
 		else if (env.has_func(ast.value)) {
-			let func = env.run_func(ast.value)
+			func = env.run_func(ast.value)
 			const scope = new ENV(func.declarationEnv);
+
 			for (let i = 0; i < func.parameters.length; i++) {
 				// TODO check the bounds here
 				// verify arity of function
@@ -123,9 +142,6 @@ export class Eval {
 							// lastEvaluated = data.data
 						// });
 					// return lastEvaluated
-				// (res()console.log));
-				// let ress = 
-				// console.log(ress)
 				// return { value: ress }
 
 			}
@@ -140,7 +156,6 @@ export class Eval {
 		//     body: declaration.body,
 		// };
 		// let val = env.add_func(fn)
-		// console.log(env.funcs);
 		// return val;
 	}
 	eval_function_declaration(declaration, env) {
@@ -182,7 +197,7 @@ export class Eval {
 	}
 	eval_binary_expr(binop, env) {
 		if (binop.type == "BOOL") {
-			return binop.value == 1 ? { type: "BOOL", value: true } : { type: "BOOL", value: false };
+			return binop.value;
 		}
 		const lhs = this.interpret(binop.left, env);
 		const rhs = this.interpret(binop.right, env);
@@ -215,20 +230,41 @@ export class Eval {
 		return res
 	}
 	eval_assignment(node, env) {
-		if (node.assigne.type !== "IDENT") {
-			console.error(`Invalid LHS inaide assignment expr `, node.assigne);
-			this.exit = true; return 0;
-		}
-		const varname = (node.assigne).value;
+		// if (node.assigne.type !== "IDENT") {
+		// 	console.error(`Invalid LHS inside assignment expr `, node.assigne);
+		// 	this.exit = true; return 0;
+		// }
+		let varname;
+		if(node.assigne.type == "IDENT"){
+			varname = (node.assigne).value
 		if (env.has_var(varname)) {
+			if(node.opt != "="){
+				return env.assign_var(varname, this.eval_numeric_binary_expr(env.get_var(varname),this.interpret(node.value, env), node.opt))
+			}
 			return env.assign_var(varname, this.interpret(node.value, env));
 		}
 		else {
-			this.interpret({ type: 'VAR_DEC', value: this.interpret(node.value, env), identifier: varname, grp: 'AST' }, env)
+			if(node.opt != "="){
+				this.exit = true
+				console.error("bro",varname,"aint defined \n define it first")
+			}
+			return env.dec_var(varname, this.interpret(node.value, env));
+			// this.interpret({ type: 'VAR_DEC', value: this.interpret(node.value, env), identifier: varname, grp: 'AST' }, env)
 		}
+		}else if(node.assigne.type == "MEMB") {
+			varname = this.eval_obj_var(node.assigne,env)
+			varname.map.set(varname.ast,this.interpret(node.value, env))
+		}else{
+			console.error(`Invalid LHS inside assignment expr `, node.assigne);
+			this.exit = true; return 0;
+		};
 	}
 	eval_var_program(declaration, env) {
-		const value = declaration.value ? this.interpret(declaration.value, env) : { type: "NULL", value: null };
+		const value = this.interpret(declaration.value, env) || { type: "NULL", value: null };
+		if (value.type == "fn_") {
+			value.name = declaration.identifier
+			let val = env.add_func(value)
+		}
 		return env.dec_var(declaration.identifier, value);
 	}
 	eval_body(body, env, new_env) {
@@ -249,7 +285,7 @@ export class Eval {
 	eval_if_program(ast, env) {
 		let opt = { type: "BOOL", value: false }
 		if (ast.test.type == "BOOL") {
-			opt.value = ast.test.value == 1 ? true : false;
+			opt.value = ast.test.value;
 		} else { opt = this.eval_binary_expr(ast.test, env) }
 		if (opt.value) {
 			return this.eval_body(ast.body, env)
@@ -272,31 +308,12 @@ export class Eval {
 		let val = env.add_func(fn)
 		return val;
 	}
-
 	async eval_import_function(ast, envs) {
-
-		// let { Lexer } = await import("../front/lexer.js")
-		// let { Parse } = await import("../front/parser.js")
 		let { readFileSync } = await import("fs");
 		(async () => {
 			let data = await readFileSync(ast.value.value, "utf8")
 			return this.interpret({ type: "FUN_CALL", args: [{ value: data, type: 'STR', grp: 'AST' }], value: "run" }, envs)
-			//   {
-			//         // console.log(data);
-			//         let lex_res = new Lexer(data.toString())
-			//         let lex = lex_res.tokenize()
-			//         // print(lex)
-			//         // if (lex_res.err) { print(chalk.redBright("Lexer error:\t") + chalk.red(lex_res.err_text)); return 0 }
-			//         let ast_res = new Parse(lex)
-			//         let ast = ast_res.AST()
-			//         // if (ast_res.err) { print(chalk.redBright("Parser error:\t") + chalk.red(ast_res.err_txt)); return 0 }
-			//         // print(ast);
-			//         // console.log("-----------\n");
-			//         let val = new Eval(ast, envs).interpret()
-			//         return val
-			//     }
 		})()
-		// console.log(Lexer);
 	}
 	eval_return_program(ast, env) {
 		this.return = true
@@ -306,14 +323,129 @@ export class Eval {
 		// let opt = this.eval_binary_expr(ast.condition)
 		let opt = { type: "BOOL", value: false }
 		if (ast.condition.type == "BOOL") {
-			opt.value = ast.condition.value == 1 ? true : false;
+			opt.value = ast.condition.value;
 		} else { opt = this.eval_binary_expr(ast.condition, env) }
 		while (opt.value) {
-			// console.log(opt);
+
 			this.eval_body(ast.body, env)
 			opt = this.eval_binary_expr(ast.condition, env)
 		}
 
+	}
+	eval_function__declaration(declaration, env) {
+		const fn = {
+			type: "fn_",
+			parameters: declaration.parameters,
+			declarationEnv: new ENV(env),
+			body: declaration.body,
+		};
+		// let val = env.add_func(fn)
+		return fn;
+	}
+	eval_obj_member(ast,env){
+		if(ast.object.type == "IDENT"){
+			let map_var = env.get_var(ast.object.value)
+			if (!map_var.value) {
+				this.exit = 0;
+				return 0
+			}
+			let val;
+			// console.log(map_var.type,ast.value.type)
+			if(map_var.type == "ARRAY" && !(ast.value.type == "NUMBER")){
+				console.error("arrays only support numbers bro not", ast.value.type)
+					this.exit = 0;
+					return 0
+			}
+			if(ast.value.type == "NUMBER" || map_var.type == "ARRAY"){
+				let arr = [...map_var.value.values()]
+				if (arr.length < ast.value.value) {
+					this.exit = 0;
+					return 0
+				}
+return arr[ast.value.value]==undefined?{type: "NULL", value:"null"}: arr[ast.value.value]
+			}
+			if(map_var.value.has(ast.value.value)){
+			val = map_var.value.get(ast.value.value)
+
+			return val
+			}
+			else{
+				this.exit = 0;
+					return 0
+			}
+		}
+		let main_map = this.eval_obj_member(ast.object,env)
+
+		if(ast.value.type == "NUMBER"){
+			let arr = [...main_map?.value?.values()]
+				if (arr.length < ast.value.value) {
+					this.exit = 0;
+					return 0
+				}
+				return arr[ast.value.value]
+		}else{
+			if(main_map.value.has(ast.value.value)){
+			return main_map.value.get(ast.value.value)
+			}else{
+			console.error("cant read proparty of undefined bro ?!")
+			}
+		}
+
+	}
+	eval_obj_var(ast,env){
+		if(ast.object.type == "IDENT"){
+			let map_var = env.get_var(ast.object.value)
+			let val;
+			if(ast.value.type == "NUMBER"){
+			let arr = [...map_var.value.values()]
+			val = arr[ast.value.value]
+			if (val?.value instanceof Map) {
+				return {map: val?.value,ast:ast.value?.value}
+			}
+			return {map:map_var.value,ast:ast.value?.value}
+			// 	let arr = [...map_var.value.values()]
+			// 	if (arr.length < ast.value.value) {
+			// 		console.error("cant read proparty of undefined bro")
+			// 		process.exit(0)
+			// 	}
+			// 	return arr[ast.value.value]
+			}
+			// if(map_var.has(ast)){
+			val = map_var.value.get(ast.value.value)
+			if (val?.value instanceof Map) {
+				return {map: val?.value,ast:ast.value?.value}
+			}
+			return {map:map_var.value,ast:ast.value?.value}
+			// }
+		}
+		let main_map = this.eval_obj_var(ast.object,env).map
+		// if (main_map instanceof Map) {
+		return {map: main_map,ast:ast.value?.value}
+		// }
+		// return {map:main_map.value,ast:ast.value?.value}
+		// return {map: main_map.value,ast:ast.value}
+
+	}
+	eval_arr(ast,env){
+		let arr = {type: "ARRAY",value: []}
+		  for (const value of ast.props) {
+			const runtimeVal = this.interpret(value, env);
+			arr.value.push(runtimeVal);
+		  }
+
+		  return arr;
+	}
+	eval_obj(ast,env){
+		let obj = {type: "OBJ",value: new Map()}
+		  for (const { key, value } of ast.properties) {
+			const runtimeVal = (value == undefined)
+			  ? env.has_var(key)
+			  : this.interpret(value, env);
+
+			obj.value.set(key, runtimeVal);
+		  }
+
+		  return obj;
 	}
 	constructor(ast, Env) {
 		this.Env = Env
@@ -335,9 +467,15 @@ export class Eval {
 			case "STR":
 				return { type: "STR", value: ast.value, };
 			case "BOOL":
-				return { type: "BOOL", value: ast.value, };
+				return { type: "BOOL", value: ast.value };
 			case "BIN_OPT":
 				return this.eval_binary_expr(ast, env || this.Env)
+			case "DBLOPR":
+				return {type: "STR", value: ast.value,}
+			case "OBJ":
+				return this.eval_obj(ast, env || this.Env)
+			case "ARRAY":
+				return this.eval_arr(ast, env || this.Env)
 			case "VAR_DEC":
 				return this.eval_var_program(ast, env || this.Env)
 			case "PROGRAM":
@@ -348,27 +486,16 @@ export class Eval {
 				return this.eval_loop_program(ast, env || this.Env)
 			case "RETURN":
 				return this.eval_return_program(ast, env || this.Env)
+			case "FUNC_ANON":
+				return this.eval_function__declaration(ast, env || this.Env)
 			case "FUNC":
 				return this.eval_function_declaration(ast, env || this.Env)
 			case "FUNCS":
 				return this.eval_functions_declaration(ast, env || this.Env)
 			case "FUN_CALL":
-			//     let res =  { type: "NUMBER", value: "12345" }
-			// res = (async()=>{
-				// let res = 
-			// //     // if (res instanceof Promise) {
-			// //     //     let val = 
-			// //     //     console.log(val);
-			// //     //     return val
-			// //     //     // res = 
-			// //     //     // res.then(console.log);
-			// //     //     // console.log(Promise.resolve(res))
-			// //     // }
-			// //     console.log(res);
-			//     return res
-			// })()
-			//     console.log(res);
-			return this.eval_function_run(ast, env || this.Env);
+				return this.eval_function_run(ast, env || this.Env);
+			case "MEMB":
+				return this.eval_obj_member(ast, env || this.Env);
 			case "NULL":
 				return { type: "NULL", value: "null" }
 			case "IMPORT":
@@ -382,7 +509,6 @@ export class Eval {
 		}
 	}
 }
-
 (async()=>{
 	const { workerData, parentPort } = await import('worker_threads')
 	// console.log(workerData.env.has_def_func());

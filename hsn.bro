@@ -1,1 +1,3 @@
-sayf("end with {} value",{one: "23" ,two: 4564563})
+var arr = [1,2,3,4,5,6,7]
+
+say(ARRAY.len(arr))

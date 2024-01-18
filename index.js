@@ -4,6 +4,10 @@ import { Lexer } from "./front/lexer.js"
 import { Parse } from "./front/parser.js"
 import { Eval } from "./back/interpret.js"
 import { ENV } from "./back/var.js";
+// import { Lexer } from "./mini/front/lexer.js"
+// import { Parse } from "./mini/front/parser.js"
+// import { Eval } from "./mini/back/interpret.js"
+// import { ENV } from "./mini/back/var.js";
 import prompt from 'enquirer';
 import chalk from 'chalk'
 import util from 'util'
@@ -15,90 +19,58 @@ function print(data) {
 }
 let short = true
 let filename = "hsn.bro"
-if (prod) {
-  if (process.argv[2]) {
-    short = false
-    filename = process.argv[2]
-  }
+if (process.argv[2]) {
+  short = false
+  filename = process.argv[2].match(".bro") ? process.argv[2] : short = true
+
 }
 // let short = false
 function spit(data, envs) {
-  // function spit(data, envs) {
-  //   let lex = new Lexer(data.toString())
-  //   let lex_res = lex
-  //   print(lex_res)
-  //   if (lex.err) {
-  //     print(lex.err_txt)
-  //     return 0
-  //   } new Eval(new Parse(new Lexer(data.toString()).tokenize()).AST()).interpret()
-  //   let ast = lex_res)
-  //   let ast_res = ast
-  //   if (ast.err) {
-  //     print(chalk.red(ast.err_txt))
-  //     return 0
-  //   }
-  //   let res =ast_res, envs)
-  //   let res_res = res
-  //   if (res.err) {
-  //     print(chalk.red(res.err_txt))
-  //     return 0
-  //   }
-  //   console.log(data.toString());
-  //   console.log("-----------\n");
-  //   print(lex_res);
-  //   console.log("-----------\n");
-  //   print(ast_res);
-  //   console.log("-----------\n");
-  //   print(res_res);
-  console.log(data.toString());
-  console.log("-----------\n");
-  // console.time()
-  let lex_res = new Lexer(data.toString())
-  let lex = lex_res.tokenize()
-  if (lex_res.err){print(chalk.redBright("Lexer error:\t") + chalk.red(lex_res.err_text));return 0}
-  print(lex);
-  console.log("-----------\n");
-  let ast_res = new Parse(lex)
-  let ast = ast_res.AST()
-  if (ast_res.err){print(chalk.redBright("Parser error:\t") + chalk.red(ast_res.err_txt));return 0}
-  print(ast);
-  console.log("-----------\n");
+  let ast;
+  let jit = process.argv.includes("-jit")
+  if (process.argv.includes("-ast") ) {
+	console.log("------code-----\n");
+	console.log(data.toString());
+	console.log("------lexer-----\n");
+	let lex_res = new Lexer(data.toString())
+	let lex = lex_res.tokenize()
+	if (lex_res.err){print(chalk.redBright("Lexer error bro:\t") + chalk.red(lex_res.err_text));return 0}
+	print(lex);
+	console.log("------parser-----\n");
+	let ast_res = new Parse(lex)
+	ast = ast_res.AST(jit)
+	if (ast_res.err){print(chalk.redBright("Parser error bro:\t") + chalk.red(ast_res.err_txt));return 0}
+	print(ast);
+	console.log("------result-----\n");
+
+  }
+  else{
+	let lex_res = new Lexer(data.toString())
+	let lex = lex_res.tokenize()
+	if (lex_res.err){print(chalk.redBright("Lexer error bro:\t") + chalk.red(lex_res.err_text));return 0}
+	let ast_res = new Parse(lex)
+	ast = ast_res.AST(jit)
+	if (ast_res.err){print(chalk.redBright("Parser error bro:\t") + chalk.red(ast_res.err_txt));return 0}
+  }
+	if(!jit){
   let res = new Eval(ast, envs)
-  print(res.interpret());
-  // res.eval_function_run({
-  //   type: 'FUN_CALL',
-  //   args: [
-  //     { value: '1', type: 'NUMBER', grp: 'AST' },
-  //     { value: '2', type: 'NUMBER', grp: 'AST' },
-  //   ],
-  //   value: 'say'
-  // },envs)
-  // console.timeEnd()
+  let res_res = res.interpret()
+  // res_res&&console.log(res_res);
+	}
+		// console.timeLog()
 }
 let env = new ENV()
 // env.dec_var("dora",{value:"yo",type:"STR"})
 if (short) {
   (async () => {
-    while (true) {
-      const { datas } = await new prompt().prompt({ name: 'datas', message: chalk.underline(chalk.blue(`bro ~`)), type: 'input', });
-      spit(datas, env)
-    }
+	while (true) {
+	  const { datas } = await new prompt().prompt({ name: 'datas', message: chalk.underline(chalk.blue(`bro ~`)), type: 'input', });
+	  spit(datas, env)
+	}
   })();
 
 } else {
   readFile(filename, async (err, data) => {
-    spit(data.toString(), env)
+	spit(data.toString(), env)
   })
 }
-// (async () => {
-//
-//
-//       spit(data.toString(),env)
-//       while (true) {
-//         const { datas } = await new prompt().prompt({ name: 'datas', message: chalk.underline(chalk.blue(`bro ~`)), type: 'input', });
-//         env.assign_var("dora",{value: datas, type: 'STR'});
-//         spit(data.toString(),env)
-//         // console.log("\n"+chalk.underline(chalk.green("result:")) + " "+chalk.green(parse(lexer(command)))+"\n")
-//       }
-//
-//     })();

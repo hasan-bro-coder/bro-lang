@@ -21,6 +21,6 @@
 
 # say(calcResult(10,3,5))
 
-fun yo(){
+fun yo() do
    say("yo")
-}
+end
